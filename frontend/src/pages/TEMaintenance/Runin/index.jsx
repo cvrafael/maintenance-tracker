@@ -1,4 +1,4 @@
-import { Table, Select, Button, Popover, Flex, Tabs  } from 'antd';
+import { Table, Select, Button, Popover, Flex, Tabs, Spin } from 'antd';
 import { Column } from '@ant-design/plots';
 import { useEffect, useState, useRef } from 'react';
 import {getAllRunins} from './apiTEMaintenanceRunin';
@@ -15,6 +15,16 @@ const data = [
   { type: 'Cabo power NB', value: 2 },
   { type: 'Cabo power DT', value: 1 },
 ];
+
+const stylesObject = {
+  indicator: {
+    color: '#00d4ff',
+  },
+};
+ const sharedProps = {
+    spinning: true,
+    percent: 0,
+  };
 
 const medal = (datum, ranking) => {
     if (ranking > 2) return datum;
@@ -130,6 +140,7 @@ const rackColumn = (_, record) =>{
   rk.positions.some((p) => p.status === 'NOK')
 );
   return (
+    !tableData ? <Spin {...sharedProps} styles={stylesObject} /> : 
   <Flex gap={5}>
   <Select
     placeholder="Select rack"
@@ -204,6 +215,7 @@ const positionColumn = (_, record) => {
     })) || [];
 
   return (
+    !tableData ? <Spin {...sharedProps} styles={stylesObject} /> : 
     <Select
       placeholder="Select position"
       value={record.position}
