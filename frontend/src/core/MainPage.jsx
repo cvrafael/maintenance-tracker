@@ -1,0 +1,102 @@
+import React, { useState } from 'react';
+import { Outlet, Link } from 'react-router';
+
+import {
+  PieChartOutlined,
+  TeamOutlined,
+  SketchOutlined
+} from '@ant-design/icons';
+import { Breadcrumb, Layout, Menu, theme, Flex, Image } from 'antd';
+const { Header, Content, Footer, Sider } = Layout;
+
+// const App = ({ avatar, isLogin, token, userEmail, isAdmin }) => {
+const App = ({ }) => {
+function getItem(label, key, icon, children) {
+  return {
+    key,
+    icon,
+    children,
+    label,
+  };
+}
+
+const items = [
+  getItem(<Link to={"/"}>Home</Link>, '100', <PieChartOutlined />),
+  getItem(<Link to={"/tracker"}>Maintenance</Link>, 'sub3', <TeamOutlined />,),
+];
+
+  const [collapsed, setCollapsed] = useState(false);
+  // const [oauthGoogle, setOauthGoogle] = useState([]);
+  // console.log('datas',oauthGoogle)
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken();
+  return (
+    <Layout
+      style={{
+        minHeight: '100vh',
+      }}
+      // token={token}
+    >
+      <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
+        <div className="demo-logo-vertical" />
+        <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
+      </Sider>
+      <Layout>
+        <Header
+          style={{
+            display: "flex",
+            padding: 0,
+            background: colorBgContainer,
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >          
+        </Header>
+        <Content
+          style={{
+            margin: '0 16px',
+          }}
+        >
+          <Breadcrumb
+            style={{
+              margin: '16px 0',
+            }}
+            items={[
+              {
+                title: 'User',
+              },
+              {
+                // title: `${userEmail}`,
+              },              
+            ]}
+          >
+          </Breadcrumb>
+          <div
+            style={{
+              padding: 24,
+              minHeight: 360,
+              background: colorBgContainer,
+              borderRadius: borderRadiusLG,
+            }}
+          >
+            {<Outlet />}
+          </div>
+        </Content>
+        <Footer
+          style={{
+            textAlign: 'center',
+          }}
+        >
+          Ant Design ©{new Date().getFullYear()} Created by Ant UED
+        </Footer>
+      </Layout>
+    </Layout>
+  // : <Image   
+  //     preview={false}
+  //     width={150}
+  //     alt="Blade Knight" 
+  //     src={`${import.meta.env.VITE_STATIC_FILES_STORAGE}/bk02.gif`} />
+  )
+};
+export default App;
