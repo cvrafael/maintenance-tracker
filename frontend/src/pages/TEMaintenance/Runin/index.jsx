@@ -28,7 +28,8 @@ const TEMaintenance = () => {
         setTableData(rows);
       })
       .catch(console.error);
-      tableData
+      tableData;
+      setRuninDatas([]);
 
   };
 
@@ -196,6 +197,10 @@ const TEMaintenance = () => {
                   {
                     label: 'Cabo power DT',
                     value: 'Cabo power DT'
+                  },
+                  {
+                    label: 'OK',
+                    value: ''
                   }
                 ]
               }
