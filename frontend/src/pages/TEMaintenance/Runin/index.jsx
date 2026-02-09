@@ -1,22 +1,42 @@
 import { Table, Select, Button, Popover, Flex, Tabs, Spin, Modal, Form, Input } from 'antd';
 import { Column } from '@ant-design/plots';
 import { useEffect, useState, useRef } from 'react';
-import { getAllRunins } from './apiTEMaintenanceRunin';
+import { getAllRunins, updateStatusRunin } from './apiTEMaintenanceRunin';
 import Avt from '../Avt/index'
 import { WarningOutlined, CheckCircleOutlined, BarChartOutlined } from '@ant-design/icons';
 
 const TEMaintenance = () => {
+  const [form] = Form.useForm();
   const [tableData, setTableData] = useState([]);
   const [runinDatas, setRuninDatas] = useState([]);
   const chartRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const onFinish = (values) => {
+    updateStatusRunin(values);
+    getAllRunins()
+      .then((result) => {
+        const rows = result.data.map((r) => ({
+          key: r.id,
+          runin: r.runin,
+          racks: r.racks,
+          rack: null,
+          position: null,
+        }));
+
+        setTableData(rows);
+      })
+      .catch(console.error);
+      tableData
+
+  };
+
   const showLoading = (payload) => {
     console.log(payload)
     setRuninDatas(payload)
     setOpen(true);
     setLoading(true);
-    // Simple loading mock. You should add cleanup logic in real world.
     setTimeout(() => {
       setLoading(false);
     }, 1000);
@@ -101,14 +121,19 @@ const TEMaintenance = () => {
 
   const actionColumn = (_, record) => {
     const payload = {
-        runin: record.runin,
-        rack: record.rack,
-        position: record.position,
-      };
-      // futuro:
-      // api.patch('/maintenance/status', payload)
-    
-     return (
+      runin: record.runin,
+      rack: record.rack,
+      position: record.position,
+    };
+    const content = (
+      <div style={{ width: '100%' }}>
+        <Column {...config} />
+      </div>
+    );
+    // futuro:
+    // api.patch('/maintenance/status', payload)
+
+    return (
       <Flex gap={5}>
 
         <Modal
@@ -120,51 +145,64 @@ const TEMaintenance = () => {
           onCancel={() => setOpen(false)}
         >
           <Form
+            form={form}
+            onFinish={onFinish}
+            fields={[
+              {
+                name: ["runin"],
+                value: runinDatas?.runin,
+              },
+              {
+                name: ["rack"],
+                value: runinDatas?.rack,
+              },
+              {
+                name: ["position"],
+                value: runinDatas?.position,
+              }
+            ]}
             labelCol={{ span: 4 }}
             wrapperCol={{ span: 14 }}
             layout="horizontal"
-            initialValues={''}
-            onValuesChange={''}
             style={{ maxWidth: 600 }}
           >
-            <Form.Item label="Run In">
-              <Input value={runinDatas.runin} disabled />
+            <Form.Item label="Run In" name={['runin']}>
+              <Input disabled />
             </Form.Item>
-            <Form.Item label="Rack">
-              <Input value={runinDatas.rack} disabled />
+            <Form.Item label="Rack" name={['rack']}>
+              <Input disabled />
             </Form.Item>
-            <Form.Item label="Position">
-              <Input value={runinDatas.position} disabled />
+            <Form.Item label="Position" name={['position']}>
+              <Input disabled />
             </Form.Item>
-            <Form.Item label="Status">
+            <Form.Item label="Status" name={'status'}>
               <Select options={[{ label: 'OK', value: 'OK' }, { label: 'NOK', value: 'NOK' }]} />
             </Form.Item>
-            <Form.Item label="Defect">
+            <Form.Item label="Defect" name={'defect'}>
               <Select options={
                 [
-                  { 
-                    label: 'Cabo de rede', 
-                    value: 'Cabo de rede' 
+                  {
+                    label: 'Cabo de rede',
+                    value: 'Cabo de rede'
                   },
-                  { 
-                    label: 'Cabo VGA', 
-                    value: 'Cabo VGA' 
+                  {
+                    label: 'Cabo VGA',
+                    value: 'Cabo VGA'
                   },
-                  { 
-                    label: 'Cabo power NB', 
-                    value: 'Cabo power NB' 
+                  {
+                    label: 'Cabo power NB',
+                    value: 'Cabo power NB'
                   },
-                  { 
-                    label: 'Cabo power DT', 
-                    value: 'Cabo power DT' 
+                  {
+                    label: 'Cabo power DT',
+                    value: 'Cabo power DT'
                   }
                 ]
               }
-               />
+              />
             </Form.Item>
-            <Form.Item label="Button">
-              <Button 
-              //  onClick={() => {}}
+            <Form.Item>
+              <Button htmlType="submit"
               >Submit</Button>
             </Form.Item>
           </Form>
@@ -174,15 +212,18 @@ const TEMaintenance = () => {
           type="primary"
           danger
           disabled={!record.rack || !record.position}
-          onClick={()=>showLoading(payload)}
+          onClick={() => showLoading(payload)}
         >
-          Solid
+          Action
         </Button>
 
-        <Button
-          icon={<BarChartOutlined />}
-          type="primary"
-        />
+        <Popover content={content} trigger="hover">
+
+          <Button
+            icon={<BarChartOutlined />}
+            type="primary"
+          />
+        </Popover>
       </Flex>
     )
   };
@@ -202,7 +243,6 @@ const TEMaintenance = () => {
       rk.positions.some((p) => p.status === 'NOK')
     );
     return (
-      !tableData ? <Spin {...sharedProps} styles={stylesObject} /> :
         <Flex gap={5}>
           <Select
             placeholder="Select rack"

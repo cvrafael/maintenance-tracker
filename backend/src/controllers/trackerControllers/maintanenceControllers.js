@@ -78,41 +78,53 @@ module.exports = {
    * 🔹 Atualiza o status da posição
    * (botão Solid do frontend)
    */
-  async update_status(req, res) {
-    try {
-      const { runin, rack, position, status } = req.body;
+ async update_status(req, res) {
+  try {
+    const { runin, rack, position, status, defect } = req.body;
 
-      if (!['OK', 'NOK'].includes(status)) {
-        return res.status(400).json({ error: 'Status inválido' });
-      }
-
-      const updated = await Position.update(
-        { status },
-        {
-          where: { position },
-          include: [
-            {
-              model: Rack,
-              where: { rack },
-              include: [
-                {
-                  model: Runin,
-                  where: { runin },
-                },
-              ],
-            },
-          ],
-        }
-      );
-
-      return res.status(200).json({
-        message: 'Status atualizado com sucesso',
-        updated,
-      });
-    } catch (error) {
-      console.error(error);
-      return res.status(400).json({ error: 'Erro ao atualizar status' });
+    if (!['OK', 'NOK'].includes(status)) {
+      return res.status(400).json({ error: 'Status inválido' });
     }
-  },
+
+    // 1️⃣ acha o rack correto (JOIN implícito)
+    const rackFound = await Rack.findOne({
+      where: { rack },
+      include: [
+        {
+          model: Runin,
+          where: { runin },
+          attributes: [],
+        },
+      ],
+    });
+
+    if (!rackFound) {
+      return res.status(404).json({ error: 'Rack não encontrado' });
+    }
+
+    // 2️⃣ update usando FK (igual ao SQL)
+    const [updated] = await Position.update(
+      {
+        status,
+        defect,
+      },
+      {
+        where: {
+          fk_id_rack: rackFound.id,
+          position,
+        },
+      }
+    );
+
+    return res.status(200).json({
+      message: 'Status atualizado com sucesso',
+      updated,
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Erro ao atualizar status' });
+  }
+}
 
 };
